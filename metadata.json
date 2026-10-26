@@ -1,0 +1,6 @@
+{
+  "name": "Restless Mind — Understanding OCD & Anxiety",
+  "description": "Free, compassionate, privacy-first mental wellbeing support platform for understanding OCD, intrusive thoughts, anxiety, and whole-person mental health.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
