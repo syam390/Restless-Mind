@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
-    "start": "node server.ts",
+    "start": "tsx server.ts",
     "test": "npx --yes tsx --test src/lib/wellbeingLogic.test.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
