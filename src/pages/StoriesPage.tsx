@@ -9,6 +9,7 @@ interface StoriesPageProps {
 }
 
 const STORY_TOKENS_KEY = 'rm_my_story_tokens_v1';
+const MY_PENDING_STORIES_KEY = 'rm_my_pending_stories_v1';
 
 export default function StoriesPage({ onNavigate }: StoriesPageProps) {
   const [stories, setStories] = useState<StoryItem[]>(INITIAL_COMMUNITY_STORIES);
@@ -18,6 +19,13 @@ export default function StoriesPage({ onNavigate }: StoriesPageProps) {
       return JSON.parse(localStorage.getItem(STORY_TOKENS_KEY) || '{}');
     } catch {
       return {};
+    }
+  });
+  const [myPendingStories, setMyPendingStories] = useState<StoryItem[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(MY_PENDING_STORIES_KEY) || '[]');
+    } catch {
+      return [];
     }
   });
   const [formData, setFormData] = useState({
@@ -85,15 +93,18 @@ export default function StoriesPage({ onNavigate }: StoriesPageProps) {
         });
       } else {
         if (data.story) {
-          setStories((prev) => [data.story, ...prev]);
-          if (data.deletionToken) {
-            const updatedTokens = { ...myTokens, [data.story.id]: data.deletionToken };
-            setMyTokens(updatedTokens);
-            try {
-              localStorage.setItem(STORY_TOKENS_KEY, JSON.stringify(updatedTokens));
-            } catch {
-              // ignore
-            }
+          // Keep submissions private to this browser until a moderator approves them.
+          const updatedPending = [data.story, ...myPendingStories];
+          setMyPendingStories(updatedPending);
+          const updatedTokens = data.deletionToken
+            ? { ...myTokens, [data.story.id]: data.deletionToken }
+            : myTokens;
+          setMyTokens(updatedTokens);
+          try {
+            localStorage.setItem(MY_PENDING_STORIES_KEY, JSON.stringify(updatedPending));
+            localStorage.setItem(STORY_TOKENS_KEY, JSON.stringify(updatedTokens));
+          } catch {
+            // The server still holds the submission; explain browser-only deletion limits if storage is unavailable.
           }
         }
         setFormData({
@@ -105,7 +116,7 @@ export default function StoriesPage({ onNavigate }: StoriesPageProps) {
         setConsentChecked(false);
         setStatusMessage({
           type: 'success',
-          text: 'Thank you for sharing. Your reflection was scrubbed for accidental PII and added with "Pending Safety Review" status. You can remove it anytime from this browser.',
+          text: 'Thank you for sharing. Your reflection was scrubbed for accidental PII and saved privately for safety review. It will not appear publicly unless approved. You can remove it from this browser.',
         });
       }
     } catch {
@@ -131,14 +142,17 @@ export default function StoriesPage({ onNavigate }: StoriesPageProps) {
         const nextTokens = { ...myTokens };
         delete nextTokens[storyId];
         setMyTokens(nextTokens);
+        const nextPending = myPendingStories.filter((story) => story.id !== storyId);
+        setMyPendingStories(nextPending);
         try {
           localStorage.setItem(STORY_TOKENS_KEY, JSON.stringify(nextTokens));
+          localStorage.setItem(MY_PENDING_STORIES_KEY, JSON.stringify(nextPending));
         } catch {
           // ignore
         }
         setStatusMessage({
           type: 'success',
-          text: 'Your submitted story has been permanently removed from the moderation queue.',
+          text: 'Your submitted story was removed from the moderation queue.',
         });
       }
     } catch {
@@ -207,6 +221,33 @@ export default function StoriesPage({ onNavigate }: StoriesPageProps) {
               ))}
             </div>
           </div>
+
+          {myPendingStories.length > 0 && (
+            <section aria-labelledby="my-pending-stories-title" className="mb-12">
+              <div className="bg-secondary/50 border border-border rounded-2xl p-5 md:p-7">
+                <div className="flex items-start gap-3 mb-4">
+                  <Lock size={19} className="text-primary mt-0.5" aria-hidden="true" />
+                  <div>
+                    <h2 id="my-pending-stories-title" className="font-bold text-foreground">Your Private Submissions</h2>
+                    <p className="text-xs text-muted-foreground mt-1">Only shown in this browser. These reflections are not part of the public community stories and require human approval before publication.</p>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {myPendingStories.map((story) => (
+                    <article key={story.id} className="bg-card border border-border rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <span className="text-xs font-semibold text-primary">Pending Safety Review</span>
+                        <button type="button" onClick={() => handleDeleteOwnStory(story.id)} className="text-destructive text-xs font-semibold hover:underline inline-flex items-center gap-1" aria-label="Delete my pending story">
+                          <Trash2 size={13} aria-hidden="true" /> Delete
+                        </button>
+                      </div>
+                      <p className="text-sm text-foreground italic">&ldquo;{story.quote}&rdquo;</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
           {filteredStories.length === 0 ? (
             <div className="bg-card border border-border rounded-2xl p-8 text-center mb-14">

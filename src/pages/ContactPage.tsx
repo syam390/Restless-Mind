@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, Send, CheckCircle, AlertCircle, Search, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, Send, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import { validateContactSubmission } from '../lib/wellbeingLogic';
 import EditorialPageHeader from '../components/EditorialPageHeader';
 
@@ -35,15 +35,6 @@ export default function ContactPage({ initialSubject = '' }: ContactPageProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Optional Reference ID Status Verification (returns only non-sensitive status & masked email)
-  const [lookupId, setLookupId] = useState('');
-  const [lookupResult, setLookupResult] = useState<{
-    id: string;
-    createdAt: string;
-    maskedEmail: string;
-    status: string;
-  } | null>(null);
-  const [lookupError, setLookupError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialSubject) {
@@ -97,32 +88,6 @@ export default function ContactPage({ initialSubject = '' }: ContactPageProps) {
     }
   };
 
-  const handleVerifyReceipt = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLookupError(null);
-    setLookupResult(null);
-    const cleanId = lookupId.trim().toUpperCase();
-    if (!cleanId) {
-      setLookupError('Please enter your inquiry reference number (e.g., RM-123456).');
-      return;
-    }
-    try {
-      const res = await fetch(`/api/contact/receipts/${encodeURIComponent(cleanId)}`);
-      const data = await res.json();
-      if (!res.ok || !data.receipt) {
-        setLookupError(data.error || 'Reference number not found.');
-      } else {
-        setLookupResult({
-          id: data.receipt.id,
-          createdAt: data.receipt.createdAt,
-          maskedEmail: data.receipt.maskedEmail,
-          status: data.receipt.status,
-        });
-      }
-    } catch {
-      setLookupError('Unable to verify reference number right now.');
-    }
-  };
 
   return (
     <div>
@@ -171,7 +136,7 @@ export default function ContactPage({ initialSubject = '' }: ContactPageProps) {
                   className="bg-card border border-primary/40 rounded-2xl p-6 md:p-8 text-center space-y-3"
                 >
                   <CheckCircle size={32} className="text-primary mx-auto" aria-hidden="true" />
-                  <p className="text-xs font-semibold text-primary">Inquiry Successfully Recorded</p>
+                  <p className="text-xs font-semibold text-primary">Inquiry Receipt Created</p>
                   <h3 className="font-bold text-foreground text-lg">
                     Reference Number:{' '}
                     <span className="font-mono tabular-nums text-primary">{receipt.receiptId}</span>
@@ -310,52 +275,6 @@ export default function ContactPage({ initialSubject = '' }: ContactPageProps) {
               </div>
             )}
 
-            {/* Verify a Reference ID */}
-            <div className="bg-card border border-border rounded-2xl p-6 shadow-xs">
-              <h3 className="text-sm font-bold text-foreground mb-1">
-                Verify an Inquiry Reference Number
-              </h3>
-              <p className="text-xs text-muted-foreground mb-4">
-                Enter your reference number (e.g., <code className="font-mono">RM-123456</code>) to confirm its status. For privacy protection, lookup only returns status and a masked email indicator—never message contents.
-              </p>
-              <form onSubmit={handleVerifyReceipt} className="flex flex-col sm:flex-row gap-2.5">
-                <label htmlFor="receipt-lookup-input" className="sr-only">
-                  Inquiry Reference Number
-                </label>
-                <input
-                  id="receipt-lookup-input"
-                  type="text"
-                  value={lookupId}
-                  onChange={(e) => setLookupId(e.target.value)}
-                  placeholder="Enter Reference ID (e.g., RM-123456)"
-                  className="flex-1 px-3.5 py-2 rounded-xl border border-border bg-secondary/40 text-foreground text-xs font-mono"
-                />
-                <button
-                  type="submit"
-                  className="button-secondary text-xs py-2 px-4 inline-flex items-center justify-center gap-1.5 shrink-0"
-                >
-                  <Search size={14} aria-hidden="true" />
-                  Check Status
-                </button>
-              </form>
-
-              {lookupError && (
-                <p role="alert" className="text-xs text-destructive mt-3">
-                  {lookupError}
-                </p>
-              )}
-
-              {lookupResult && (
-                <div
-                  role="status"
-                  className="mt-3 bg-secondary border border-border rounded-xl p-3.5 text-xs font-mono tabular-nums text-foreground flex flex-wrap items-center justify-between gap-2"
-                >
-                  <span>Ref: {lookupResult.id}</span>
-                  <span>Status: {lookupResult.status}</span>
-                  <span>Contact: {lookupResult.maskedEmail}</span>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </section>
