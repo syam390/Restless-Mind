@@ -205,7 +205,15 @@ app.delete('/api/stories/:id', (req, res) => {
     return;
   }
 
-  if (runtimeStore.submittedStories[index].deletionTokenHash !== hashToken(token)) {
+  const storedHash = runtimeStore.submittedStories[index].deletionTokenHash;
+  const providedHash = hashToken(token);
+  if (
+    !/^[a-f0-9]{64}$/i.test(storedHash) ||
+    !crypto.timingSafeEqual(
+      Buffer.from(storedHash, 'hex'),
+      Buffer.from(providedHash, 'hex')
+    )
+  ) {
     res.status(403).json({ error: 'Invalid deletion token for this story.' });
     return;
   }
@@ -261,14 +269,6 @@ app.post('/api/contact', (req, res) => {
   });
 });
 
-app.get('/api/contact/receipts/:receiptId', (req, res) => {
-  const found = runtimeStore.contactReceipts.find((r) => r.id === req.params.receiptId);
-  if (!found) {
-    res.status(404).json({ error: 'Receipt ID not found.' });
-    return;
-  }
-  res.json({ receipt: found });
-});
 
 type AiGuideTask = 'simplify_concept' | 'prepare_doctor_questions' | 'reflection_prompt' | 'support_navigation';
 
