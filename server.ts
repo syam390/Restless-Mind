@@ -270,7 +270,74 @@ app.post('/api/contact', (req, res) => {
 });
 
 
-type AiGuideTask = 'simplify_concept' | 'prepare_doctor_questions' | 'reflection_prompt' | 'support_navigation';
+function isAuthorizedModerator(providedToken: string): boolean {
+  const expectedToken = process.env.RESTLESS_MIND_MODERATION_TOKEN;
+  if (!expectedToken || expectedToken.length < 32 || !providedToken) {
+    return false;
+  }
+  const expected = Buffer.from(expectedToken, 'utf8');
+  const provided = Buffer.from(providedToken, 'utf8');
+  if (expected.length !== provided.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(expected, provided);
+}
+app.get('/api/admin/stories', (req, res) => {
+  if (!isAuthorizedModerator(String(req.headers['x-moderation-token'] || ''))) {
+    res.status(401).json({ error: 'Unauthorized moderator.' });
+    return;
+  }
+  const pending = runtimeStore.submittedStories
+    .filter((story) => story.status === 'pending_moderation')
+    .map(({ deletionTokenHash: _hidden, ...story }) => story);
+  res.json({ stories: pending });
+});
+app.post('/api/admin/stories/:id/moderation', (req, res) => {
+  if (!isAuthorizedModerator(String(req.headers['x-moderation-token'] || ''))) {
+    res.status(401).json({ error: 'Unauthorized moderator.' });
+    return;
+  }
+  const action = req.body?.action;
+  if (action !== 'approve' && action !== 'reject') {
+    res.status(400).json({ error: 'Action must be approve or reject.' });
+    return;
+  }
+  const story = runtimeStore.submittedStories.find(
+    (item) => item.id === req.params.id
+  );
+  if (!story) {
+    res.status(404).json({ error: 'Submitted story not found.' });
+    return;
+  }
+  if (story.status !== 'pending_moderation') {
+    res.status(409).json({ error: 'Only pending stories can be moderated.' });
+    return;
+  }
+  const previousStatus = story.status;
+  if (action === 'reject') {
+    runtimeStore.submittedStories = runtimeStore.submittedStories.filter(
+      (item) => item.id !== story.id
+    );
+    try {
+      saveStore(runtimeStore);
+    } catch {
+      runtimeStore.submittedStories.push(story);
+      res.status(500).json({ error: 'Could not save moderation decision.' });
+      return;
+    }
+    res.json({ success: true, id: story.id, status: 'rejected' });
+    return;
+  }
+  story.status = 'published';
+  try {
+    saveStore(runtimeStore);
+  } catch {
+    story.status = previousStatus;
+    res.status(500).json({ error: 'Could not save moderation decision.' });
+    return;
+  }
+  res.json({ success: true, id: story.id, status: story.status });
+});type AiGuideTask = 'simplify_concept' | 'prepare_doctor_questions' | 'reflection_prompt' | 'support_navigation';
 
 function buildDeterministicEducationalResponse(task: AiGuideTask, userInput: string): string {
   const cleanTopic = userInput.trim();
