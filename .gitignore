@@ -6,11 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
-data/
+/data/
+!/src/data/
+!/src/data/**
 .playwright-cli/
 
+
+# AI Studio development artifacts
 .aistudio/
-public/assets/aistudio/*.zip
-.env
-node_modules/
-dist/
+public/assets/aistudio/

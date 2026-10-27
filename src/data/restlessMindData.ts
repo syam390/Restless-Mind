@@ -314,7 +314,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: 'What is OCD? Understanding the Basics',
     excerpt:
       'Obsessive-Compulsive Disorder (OCD) is more than just being organized or clean. Learn what OCD really is and how it differs from everyday habits.',
-    date: 'Evidence Guide · Reviewed',
+    date: 'Evidence Guide · Clinical review pending',
     readTime: '5 min read',
     category: 'OCD Fundamentals',
     keyTakeaways: [
@@ -334,7 +334,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: 'Breaking the Cycle: How ERP Therapy Works',
     excerpt:
       'Exposure and Response Prevention (ERP) is the gold standard psychological treatment for OCD. Discover how this collaborative therapy helps people recover.',
-    date: 'Treatment Guide · Reviewed',
+    date: 'Treatment Guide · Clinical review pending',
     readTime: '7 min read',
     category: 'Therapy & Recovery',
     keyTakeaways: [
@@ -354,16 +354,16 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: "Intrusive Thoughts vs. Real Intentions: What's the Difference?",
     excerpt:
       'One of the most confusing parts of OCD and anxiety is dealing with unwanted thoughts. Learn why having an intrusive thought never equals wanting to act on it.',
-    date: 'Psychoeducation · Reviewed',
+    date: 'Psychoeducation · Clinical review pending',
     readTime: '6 min read',
     category: 'Intrusive Thoughts',
     keyTakeaways: [
-      'Over 90% of people experience occasional bizarre or unwanted thoughts.',
+      'Cross-cultural psychological research (e.g., Radomsky et al., 2014) shows that the vast majority of people experience occasional unwanted intrusive thoughts.',
       'Intrusive thoughts cause distress precisely because they conflict with your true values.',
       'Trying to suppress a thought ("don\'t think of a white bear") makes it rebound more frequently.',
     ],
     content: [
-      'Global psychological studies show that nearly everyone has occasional strange, sudden, or unwanted thoughts—such as a sudden image of swerving a car or blurting out something inappropriate.',
+      'International psychological studies (including research by Rachman & de Silva and the International Intrusive Thoughts Consortium, Radomsky et al., 2014) show that most people in the general population experience occasional strange, sudden, or unwanted thoughts—such as a sudden image of swerving a car or blurting out something inappropriate.',
       'Most people dismiss these thoughts as random "mental spam." However, if you are prone to OCD or high anxiety, you may interpret the mere presence of the thought as dangerous or morally meaningful ("Why would I think that? Does this mean I am dangerous?").',
       'Clinicians call intrusive thoughts "ego-dystonic," meaning they are the exact opposite of who you are. A gentle, caring parent may have intrusive fears of harming their child precisely because protecting their child matters more to them than anything else.',
       'The most helpful skill is not arguing with the thought or proving it wrong, but noticing it like a passing train: "That is an intrusive thought. I don\'t need to analyze or check it."',
@@ -374,7 +374,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: 'Supporting a Loved One with OCD Without Enabling Compulsions',
     excerpt:
       "If someone you care about has OCD or severe anxiety, here's how to offer compassionate support while stepping out of the reassurance trap.",
-    date: 'Family Guide · Reviewed',
+    date: 'Family Guide · Clinical review pending',
     readTime: '8 min read',
     category: 'Family & Allies',
     keyTakeaways: [
@@ -394,7 +394,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: 'Anxiety, OCD, Burnout & Whole-Person Wellbeing: Key Differences',
     excerpt:
       'While anxiety and OCD often co-exist, understanding how they differ—and how sleep, neurodiversity, and physical health interact—helps you find the right care.',
-    date: 'Care Navigation · Reviewed',
+    date: 'Care Navigation · Clinical review pending',
     readTime: '6 min read',
     category: 'Whole-Person Health',
     keyTakeaways: [
@@ -413,7 +413,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: 'Navigating Affordable Mental Health Care & Support in India',
     excerpt:
       'From public institutions like NIMHANS and Tele-MANAS (14416) to preparing for your first appointment, here is a practical roadmap to finding help.',
-    date: 'Resource Guide · Reviewed',
+    date: 'Resource Guide · Clinical review pending',
     readTime: '5 min read',
     category: 'Care Navigation',
     keyTakeaways: [

@@ -10,10 +10,12 @@ import ContactPage from './pages/ContactPage';
 import VolunteerPage from './pages/VolunteerPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import TreatmentPage from './pages/TreatmentPage';
 import { CrisisRegionCode } from './lib/wellbeingLogic';
 
 const VALID_ROUTES: AppRoute[] = [
   '/',
+  '/treatment',
   '/tools',
   '/resources',
   '/stories',
@@ -40,6 +42,10 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     return params.get('subject') || '';
   });
+  const [queryTab, setQueryTab] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tab') || '';
+  });
   const [region, setRegion] = useState<CrisisRegionCode>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_REGION_KEY) as CrisisRegionCode | null;
@@ -64,6 +70,7 @@ export default function App() {
       setCurrentRoute(parseRoute(window.location.pathname));
       const params = new URLSearchParams(window.location.search);
       setQuerySubject(params.get('subject') || '');
+      setQueryTab(params.get('tab') || '');
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -98,8 +105,10 @@ export default function App() {
     if (queryStr) {
       const params = new URLSearchParams(queryStr);
       setQuerySubject(params.get('subject') || '');
+      setQueryTab(params.get('tab') || '');
     } else {
       setQuerySubject('');
+      setQueryTab('');
     }
 
     if (hash) {
@@ -133,8 +142,15 @@ export default function App() {
             onRegionChange={handleRegionChange}
           />
         )}
+        {currentRoute === '/treatment' && (
+          <TreatmentPage onNavigate={handleNavigate} />
+        )}
         {currentRoute === '/tools' && (
-          <ToolsPage region={region} onNavigate={handleNavigate} />
+          <ToolsPage
+            region={region}
+            onNavigate={handleNavigate}
+            initialTab={queryTab}
+          />
         )}
         {currentRoute === '/resources' && (
           <ResourcesPage onNavigate={handleNavigate} />

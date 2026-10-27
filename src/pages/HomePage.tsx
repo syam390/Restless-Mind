@@ -4,25 +4,43 @@ import {
   CheckCircle,
   AlertCircle,
   Heart,
-  Zap,
+  Wind,
   Users,
   BookOpen,
   Compass,
   PhoneCall,
+  ShieldCheck,
+  Sparkles,
+  CalendarCheck,
+  Lock,
+  RefreshCw,
+  Brain,
+  Sliders,
+  ExternalLink,
 } from 'lucide-react';
 import {
   OCD_SYMPTOMS,
-  OCD_CYCLE_STAGES,
   WELLBEING_PATHWAYS,
   INITIAL_COMMUNITY_STORIES,
 } from '../data/restlessMindData';
 import { CrisisRegionCode, getCrisisResourcesByRegion } from '../lib/wellbeingLogic';
+import OcdErpSimulator from '../components/OcdErpSimulator';
+import InteractiveClarityHero from '../components/InteractiveClarityHero';
 
 interface HomePageProps {
   onNavigate: (path: string) => void;
   region: CrisisRegionCode;
   onRegionChange: (region: CrisisRegionCode) => void;
 }
+
+const SYMPTOM_ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  checking: Sliders,
+  cleaning: Sparkles,
+  intrusive: Brain,
+  guilt: Heart,
+  rituals: RefreshCw,
+  fear: AlertCircle,
+};
 
 export default function HomePage({ onNavigate, region, onRegionChange }: HomePageProps) {
   const [selectedSymptom, setSelectedSymptom] = useState<string | null>('checking');
@@ -37,132 +55,188 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
     onNavigate(href);
   };
 
+  const platformFeatures = [
+    {
+      title: 'Understanding Treatment (CBT, ERP, ACT & Medications)',
+      description:
+        'Explore evidence-based OCD and anxiety care—including interactive CBT and ERP diagrams, SSRIs, clomipramine, specialist options, and clinician questions.',
+      meta: 'NICE CG31 · NHS · IOCDF · Interactive Explorer',
+      href: '/treatment',
+      icon: ShieldCheck,
+    },
+    {
+      title: '4-7-8 Paced Breathing',
+      description:
+        'Guided 19-second respiratory rhythm with optional soft chime, voice cues, and ambient soundscapes to settle acute physiological arousal.',
+      meta: 'Interactive Timer · Opt-In Audio · Reduced-Motion Safe',
+      href: '/tools?tab=breathing',
+      icon: Wind,
+    },
+    {
+      title: 'Thought & ERP Reflection Journal',
+      description:
+        'Observe intrusive thoughts and urges without performing compulsions. Edit, search, and store privately in your browser.',
+      meta: 'Local-First Storage · Inline Edit & Erase',
+      href: '/tools?tab=journal',
+      icon: BookOpen,
+    },
+    {
+      title: 'Mood, Stress & Sleep Check-Ins',
+      description:
+        'Track daily patterns across mood, overwhelm, and sleep duration with personal insights and Open mHealth JSON export.',
+      meta: 'Open mHealth Standard · Real Pattern Insights',
+      href: '/tools?tab=checkin',
+      icon: CalendarCheck,
+    },
+    {
+      title: 'Scoped AI Appointment Guide',
+      description:
+        'Organize non-diagnostic concerns and prepare structured questions for a clinician with OCD anti-reassurance safeguards.',
+      meta: 'Non-Diagnostic · Anti-Reassurance Guard',
+      href: '/tools?tab=ai-prep',
+      icon: Sparkles,
+    },
+    {
+      title: '5-4-3-2-1 Sensory Grounding',
+      description:
+        'Step-by-step interactive sensory walkthrough with custom visual anchors to return attention to the present room.',
+      meta: 'Guided Stepper + Completion Summary',
+      href: '/tools?tab=grounding',
+      icon: Compass,
+    },
+  ];
+
   return (
     <div>
-      {/* Hero Section preserving Restless Mind aesthetic */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div className="absolute inset-0 -z-10 gradient-hero" />
+      {/* 1. Art-Directed Interactive Clarity Horizon & Constellation Hero */}
+      <InteractiveClarityHero onNavigate={onNavigate} />
 
-        <svg
-          className="absolute inset-0 -z-10 w-full h-full"
-          viewBox="0 0 1200 600"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#6ba8ff" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#9ec5ff" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M0,300 Q300,250 600,300 T1200,300 L1200,600 L0,600 Z"
-            fill="url(#waveGrad)"
-            opacity="0.5"
-          />
-        </svg>
+      {/* 2. How the Platform Works & Trust/Privacy Architecture */}
+      <section className="py-16 md:py-20 bg-background border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mb-12">
+            <p className="text-xs font-semibold text-primary mb-2">How Restless Mind Works</p>
+            <h2 className="heading-lg mb-3">Three structured steps from overwhelm to informed support</h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Use the platform at your own pace—whether you are trying to make sense of repetitive doubts for the first time or preparing notes for a specialist appointment.
+            </p>
+          </div>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-          <div className="grid md:grid-cols-2 gap-10 items-center">
-            <div className="animate-slide-in-up">
-              <p className="text-sm font-semibold text-primary mb-4">
-                You&apos;re not alone · Earlier, safer mental-wellbeing support
-              </p>
-              <h1 className="heading-xl mb-6">
-                When your mind feels loud, find peace here.
-              </h1>
-              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                You are not your thoughts. <strong className="text-foreground">Restless Mind</strong> helps people understand repetitive fears, unwanted intrusive thoughts, compulsions, anxiety, and whole-person mental wellbeing with compassion.
-              </p>
-              <p className="text-base text-muted-foreground mb-8 leading-relaxed">
-                A free, judgment-free, privacy-first space to recognize patterns early, practice evidence-informed grounding and journaling tools, and navigate affordable professional care.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a
-                  href="#symptoms"
-                  className="button-primary inline-flex items-center justify-center whitespace-nowrap"
-                >
-                  Understand My Experiences
-                  <ChevronRight size={18} className="ml-2" aria-hidden="true" />
-                </a>
-                <a
-                  href="/tools"
-                  onClick={(e) => handleLink(e, '/tools')}
-                  className="button-secondary inline-flex items-center justify-center whitespace-nowrap"
-                >
-                  Open Daily Calm Tools
-                  <ChevronRight size={18} className="ml-2" aria-hidden="true" />
-                </a>
-              </div>
-              <p className="text-xs text-muted-foreground mt-6">
-                Free · Anonymous Option · Local-First Privacy · Verified India &amp; Global Helplines
+          <div className="grid md:grid-cols-3 gap-6 mb-14">
+            <div className="bg-card border border-border rounded-2xl p-6">
+              <p className="text-xs font-mono tabular-nums font-semibold text-primary mb-2">01. Understand</p>
+              <h3 className="text-lg font-bold text-foreground mb-2">Recognize Patterns Without Self-Blame</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Read plain-language guides on how the OCD cycle and anxiety loops operate, why intrusive thoughts stick, and how Exposure and Response Prevention (ERP) helps reduce compulsive urgency.
               </p>
             </div>
+            <div className="bg-card border border-border rounded-2xl p-6">
+              <p className="text-xs font-mono tabular-nums font-semibold text-primary mb-2">02. Practice</p>
+              <h3 className="text-lg font-bold text-foreground mb-2">Use Distraction-Free Daily Tools</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Practice 4-7-8 breathing, 5-4-3-2-1 sensory grounding, daily mood/stress/sleep check-ins, and non-compulsive thought journaling stored strictly on your device.
+              </p>
+            </div>
+            <div className="bg-card border border-border rounded-2xl p-6">
+              <p className="text-xs font-mono tabular-nums font-semibold text-primary mb-2">03. Connect</p>
+              <h3 className="text-lg font-bold text-foreground mb-2">Prepare for Qualified Human Care</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Generate structured questions for a psychologist or psychiatrist, download a plain-text appointment prep sheet, and locate affordable public or NGO mental-health services.
+              </p>
+            </div>
+          </div>
 
-            {/* Calm Interactive Overview Card */}
-            <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-xs">
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border">
-                <div className="w-16 h-16 rounded-2xl gradient-blue-soft flex items-center justify-center text-3xl shrink-0">
-                  🧘
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-foreground">
-                    Finding Calm &amp; Clarity Step by Step
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Non-diagnostic support designed to reduce shame and help you take practical next steps.
-                  </p>
-                </div>
+          {/* Feature Cards for Existing Tools & Resources */}
+          <div className="mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+              <div>
+                <h3 className="heading-md">Tools &amp; Educational Resources</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Every tool is free, works without an account, and respects your privacy.
+                </p>
               </div>
+              <a
+                href="/tools"
+                onClick={(e) => handleLink(e, '/tools')}
+                className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1"
+              >
+                Open All Wellness Tools
+                <ChevronRight size={16} aria-hidden="true" />
+              </a>
+            </div>
 
-              <div className="space-y-4 text-sm">
-                <div className="flex items-start gap-3">
-                  <CheckCircle size={18} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <p className="font-semibold text-foreground">1. Recognize Without Self-Judgment</p>
-                    <p className="text-muted-foreground text-xs">
-                      Explore OCD symptoms, anxiety, burnout, sleep, neurodiversity, and body-mind wellbeing pathways.
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {platformFeatures.map((feat) => {
+                const Icon = feat.icon;
+                return (
+                  <a
+                    key={feat.title}
+                    href={feat.href}
+                    onClick={(e) => handleLink(e, feat.href)}
+                    className="card-hover flex flex-col justify-between text-left group"
+                  >
+                    <div>
+                      <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-primary mb-4">
+                        <Icon size={20} aria-hidden="true" />
+                      </div>
+                      <h4 className="font-bold text-foreground text-base mb-2 group-hover:text-primary smooth-transition">
+                        {feat.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                        {feat.description}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-3 border-t border-border">
+                      {feat.meta}
                     </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle size={18} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <p className="font-semibold text-foreground">2. Practice Evidence-Informed Daily Tools</p>
-                    <p className="text-muted-foreground text-xs">
-                      Use the interactive 4-7-8 breathing timer, 5-4-3-2-1 grounding, private thought journal, and daily check-in.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle size={18} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <p className="font-semibold text-foreground">3. Connect With Qualified Human Care</p>
-                    <p className="text-muted-foreground text-xs">
-                      Prepare questions for your first appointment and find verified public and affordable services (NIMHANS, Tele-MANAS 14416, iCall).
-                    </p>
-                  </div>
-                </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Accurate Trust & Privacy Architecture Banner */}
+          <div className="bg-secondary border border-border rounded-2xl p-6 md:p-8 grid md:grid-cols-12 gap-6 items-center">
+            <div className="md:col-span-8 space-y-2">
+              <div className="flex items-center gap-2 text-primary font-semibold text-xs">
+                <Lock size={15} aria-hidden="true" />
+                <span>Transparent Privacy &amp; Data Ownership</span>
               </div>
+              <h3 className="text-lg font-bold text-foreground">
+                Your journals and check-ins stay on your device unless you choose to export them.
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Thought journal entries and daily check-ins are saved in your browser&apos;s <code className="font-mono text-xs">localStorage</code> only when you enable consent. Community story submissions automatically redact accidental phone numbers and email addresses, and you can export or permanently erase your local data at any time.
+              </p>
+            </div>
+            <div className="md:col-span-4 flex flex-wrap md:justify-end gap-3">
+              <a
+                href="/privacy"
+                onClick={(e) => handleLink(e, '/privacy')}
+                className="button-secondary text-xs py-2.5 px-4 whitespace-nowrap"
+              >
+                Review Privacy &amp; Data Controls
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Symptom Discovery Section (Upgraded to Accessible Keyboard Buttons) */}
-      <section id="symptoms" className="py-16 md:py-24 bg-secondary border-b border-border">
+      {/* 3. Symptom Discovery Section */}
+      <section id="symptoms" className="py-16 md:py-20 bg-secondary/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="heading-lg mb-4">Do any of these feel familiar?</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Select any experience below to read why it happens and a gentle Exposure and Response Prevention (ERP) perspective.
+          <div className="max-w-2xl mb-10">
+            <p className="text-xs font-semibold text-primary mb-2">Common OCD &amp; Anxiety Patterns</p>
+            <h2 className="heading-lg mb-3">Do any of these experiences feel familiar?</h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Select any card below to read why this pattern happens and how Exposure and Response Prevention (ERP) approaches it gently.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-10">
+          <div className="grid md:grid-cols-2 gap-5 mb-10">
             {OCD_SYMPTOMS.map((symptom) => {
               const isExpanded = selectedSymptom === symptom.id;
+              const SymptomIcon = SYMPTOM_ICON_MAP[symptom.id] || Compass;
               return (
                 <button
                   key={symptom.id}
@@ -174,14 +248,14 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <span className="text-4xl shrink-0" aria-hidden="true">
-                      {symptom.icon}
-                    </span>
+                    <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-primary shrink-0 mt-0.5">
+                      <SymptomIcon size={20} aria-hidden="true" />
+                    </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-bold text-foreground text-lg">{symptom.title}</h3>
+                        <h3 className="font-bold text-foreground text-base md:text-lg">{symptom.title}</h3>
                         <span className="text-xs font-semibold text-primary shrink-0">
-                          {isExpanded ? 'Hide details' : 'Learn more'}
+                          {isExpanded ? 'Hide details' : 'Read perspective'}
                         </span>
                       </div>
                       {isExpanded && (
@@ -189,7 +263,7 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
                           <p className="text-sm text-muted-foreground leading-relaxed">
                             {symptom.description}
                           </p>
-                          <div className="bg-muted/70 rounded-xl p-3 border border-border">
+                          <div className="bg-secondary rounded-xl p-3.5 border border-border">
                             <p className="text-xs text-foreground leading-relaxed">
                               <strong>Evidence-Informed ERP Perspective:</strong> {symptom.erpTip}
                             </p>
@@ -203,13 +277,13 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
             })}
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
-            <div className="flex items-start gap-4">
-              <CheckCircle size={24} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="bg-card border border-border rounded-2xl p-6 md:p-7">
+            <div className="flex items-start gap-3.5">
+              <CheckCircle size={20} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <h3 className="font-bold text-foreground mb-2">What you should know:</h3>
+                <h3 className="font-bold text-foreground text-base mb-1">A compassionate reminder</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  These experiences are real, valid, and far more common than people realize. Experiencing intrusive thoughts or compulsions is not a sign of character weakness or danger—and Restless Mind does not diagnose conditions. Evidence-based therapies like ERP and CBT help people step out of this loop safely.
+                  Experiencing intrusive thoughts or urges to check does not reflect your character or intentions. While these descriptions are educational and not a clinical diagnosis, structured therapies such as ERP and CBT help people respond differently to uncertainty.
                 </p>
               </div>
             </div>
@@ -217,13 +291,14 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
         </div>
       </section>
 
-      {/* Inclusive Whole-Person Wellbeing Pathways Section */}
-      <section id="pathways" className="py-16 md:py-24 bg-background border-b border-border">
+      {/* 4. Whole-Person Wellbeing Pathways */}
+      <section id="pathways" className="py-16 md:py-20 bg-background border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="heading-lg mb-4">Inclusive Whole-Person Wellbeing Pathways</h2>
-            <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Mental wellbeing goes beyond a single label. Explore non-diagnostic educational guidance and care routes across OCD, anxiety, stress, sleep, neurodiversity (ADHD &amp; Autism), and body-mind health (including PCOS/PCOD).
+          <div className="max-w-3xl mb-8">
+            <p className="text-xs font-semibold text-primary mb-2">Whole-Person Context</p>
+            <h2 className="heading-lg mb-3">Inclusive Mental &amp; Physical Wellbeing Pathways</h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Anxiety and intrusive thoughts often intersect with sleep, burnout, neurodiversity (ADHD &amp; Autism), and hormonal health (including PCOS/PCOD). Explore non-diagnostic guidance across each area:
             </p>
           </div>
 
@@ -231,7 +306,7 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
           <div
             role="tablist"
             aria-label="Mental wellbeing pathways"
-            className="flex flex-wrap gap-2 justify-center mb-8"
+            className="flex flex-wrap gap-2 mb-8"
           >
             {WELLBEING_PATHWAYS.map((pathway) => {
               const isSelected = pathway.id === activePathway.id;
@@ -242,10 +317,10 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
                   role="tab"
                   aria-selected={isSelected}
                   onClick={() => setActivePathwayId(pathway.id)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap shrink-0 smooth-transition ${
+                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap shrink-0 smooth-transition cursor-pointer ${
                     isSelected
                       ? 'bg-primary text-primary-foreground shadow-xs'
-                      : 'bg-card text-foreground border border-border hover:bg-accent/50'
+                      : 'bg-card text-foreground border border-border hover:bg-secondary'
                   }`}
                 >
                   {pathway.title}
@@ -257,17 +332,19 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
           {/* Active Pathway Card */}
           <div
             role="tabpanel"
-            className="bg-card border border-border rounded-2xl p-6 md:p-10 shadow-xs animate-slide-in-up"
+            className="bg-card border border-border rounded-2xl p-6 md:p-9 shadow-xs animate-slide-in-up"
           >
             <div className="mb-6 pb-6 border-b border-border">
               <p className="text-xs font-semibold text-primary mb-1">{activePathway.subtitle}</p>
-              <h3 className="heading-md mb-3">{activePathway.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">{activePathway.summary}</p>
+              <h3 className="heading-md mb-2">{activePathway.title}</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                {activePathway.summary}
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 mb-6">
               <div>
-                <h4 className="font-bold text-foreground mb-3 flex items-center gap-2 text-base">
+                <h4 className="font-bold text-foreground mb-3 flex items-center gap-2 text-sm md:text-base">
                   <Compass size={18} className="text-primary" aria-hidden="true" />
                   Common Experiences (Non-Diagnostic)
                 </h4>
@@ -282,14 +359,14 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
               </div>
 
               <div>
-                <h4 className="font-bold text-foreground mb-3 flex items-center gap-2 text-base">
+                <h4 className="font-bold text-foreground mb-3 flex items-center gap-2 text-sm md:text-base">
                   <CheckCircle size={18} className="text-primary" aria-hidden="true" />
                   Practical Next Steps &amp; Platform Tools
                 </h4>
                 <ul className="space-y-2.5 text-sm text-muted-foreground">
                   {activePathway.practicalSteps.map((step, idx) => (
                     <li key={idx} className="flex items-start gap-2.5">
-                      <span className="text-primary font-bold">{idx + 1}.</span>
+                      <span className="font-mono tabular-nums text-primary font-semibold">{idx + 1}.</span>
                       <span>{step}</span>
                     </li>
                   ))}
@@ -329,56 +406,40 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
         </div>
       </section>
 
-      {/* OCD Cycle Section */}
-      <section id="ocd-cycle" className="py-16 md:py-24 bg-secondary border-b border-border">
+      {/* 5. Interactive OCD Cycle & ERP Habituation Simulator Section */}
+      <section id="ocd-cycle" className="py-16 md:py-20 bg-secondary/60 border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="heading-lg mb-4">Understanding the OCD Cycle</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              OCD works in a repeating loop. Understanding why compulsions and reassurance only give brief relief is the first step toward breaking free.
+          <div className="max-w-3xl mb-10">
+            <p className="text-xs font-semibold text-primary mb-2">Interactive Visual Guide · Mechanism of the Loop</p>
+            <h2 className="heading-lg mb-3">Explore the 5-Stage OCD Cycle &amp; ERP Habituation</h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Compulsions and reassurance-seeking bring brief relief, which inadvertently teaches the brain that the intrusive thought was dangerous. Use the interactive simulator below to compare repeated rituals against Exposure and Response Prevention (ERP).
             </p>
           </div>
 
-          <div className="grid md:grid-cols-5 gap-6 mb-12">
-            {OCD_CYCLE_STAGES.map((stage, index) => (
-              <div key={stage.step} className="relative bg-card border border-border rounded-2xl p-5 text-center">
-                <div className="w-16 h-16 mx-auto rounded-full gradient-blue-soft flex items-center justify-center text-3xl mb-4 shadow-xs">
-                  {stage.emoji}
-                </div>
-                <p className="text-xs font-mono tabular-nums text-primary font-semibold mb-1">
-                  Stage 0{index + 1}
-                </p>
-                <h3 className="font-bold text-foreground mb-2 text-sm">{stage.step}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{stage.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-card rounded-2xl p-8 md:p-10 text-center border border-border">
-            <p className="text-xs font-semibold text-primary mb-2">
-              Evidence-Informed Care · Exposure &amp; Response Prevention (ERP)
-            </p>
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              How Recovery Works: Stepping Out of the Compulsion Loop
-            </h3>
-            <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-              Exposure and Response Prevention (ERP) therapy helps you gradually face intrusive doubts while choosing not to perform compulsions or reassurance checks. Over time, your brain learns that uncertainty is tolerable and the alarm naturally quiets down.
-            </p>
-          </div>
+          <OcdErpSimulator onNavigate={onNavigate} />
         </div>
       </section>
 
-      {/* Stories Section */}
-      <section className="py-16 md:py-24 bg-background border-b border-border">
+      {/* 6. Community Stories Preview */}
+      <section className="py-16 md:py-20 bg-background border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="heading-lg mb-4">Stories from People Like You</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              You are not alone in this. Read lived experiences from people navigating intrusive thoughts and anxiety.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+            <div>
+              <p className="text-xs font-semibold text-primary mb-2">Peer Reflections</p>
+              <h2 className="heading-lg">Lived Experiences from the Community</h2>
+            </div>
+            <a
+              href="/stories"
+              onClick={(e) => handleLink(e, '/stories')}
+              className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              View &amp; Share Stories
+              <ChevronRight size={16} aria-hidden="true" />
+            </a>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-10">
+          <div className="grid md:grid-cols-3 gap-6">
             {INITIAL_COMMUNITY_STORIES.slice(0, 3).map((story) => (
               <div
                 key={story.id}
@@ -388,11 +449,11 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
                   <p className="text-xs text-muted-foreground mb-3">
                     {story.author} · {story.category}
                   </p>
-                  <p className="text-foreground/90 mb-6 italic leading-relaxed">
+                  <p className="text-sm text-foreground/90 mb-5 italic leading-relaxed">
                     &ldquo;{story.quote}&rdquo;
                   </p>
                 </div>
-                <div className="border-t border-border pt-4">
+                <div className="border-t border-border pt-3.5">
                   <p className="text-xs text-muted-foreground">
                     <strong className="text-foreground">Reflection:</strong> {story.highlight}
                   </p>
@@ -400,71 +461,21 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
               </div>
             ))}
           </div>
-
-          <div className="text-center bg-secondary border border-border rounded-2xl p-8">
-            <p className="text-muted-foreground mb-4 text-base">
-              Have a reflection to share with the community? All stories go through safety moderation and can be submitted anonymously.
-            </p>
-            <a
-              href="/stories"
-              onClick={(e) => handleLink(e, '/stories')}
-              className="button-primary inline-flex items-center"
-            >
-              Read &amp; Share Stories Anonymously
-              <ChevronRight size={18} className="ml-2" aria-hidden="true" />
-            </a>
-          </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-20 bg-secondary border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="heading-lg mb-4">Ready to take a gentle next step?</h2>
-          <p className="text-base md:text-lg text-muted-foreground mb-8 leading-relaxed">
-            Whether you want to practice a 4-7-8 breathing exercise, write in your private local journal, prepare questions for a doctor, or find a public hospital clinic—choose what fits today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
-            <a
-              href="/tools"
-              onClick={(e) => handleLink(e, '/tools')}
-              className="button-primary inline-flex items-center justify-center"
-            >
-              Try Daily Calm Tools
-              <Zap size={18} className="ml-2" aria-hidden="true" />
-            </a>
-            <a
-              href="/resources"
-              onClick={(e) => handleLink(e, '/resources')}
-              className="button-secondary inline-flex items-center justify-center"
-            >
-              Find Verified Help
-              <Users size={18} className="ml-2" aria-hidden="true" />
-            </a>
-            <a
-              href="/blog"
-              onClick={(e) => handleLink(e, '/blog')}
-              className="button-secondary inline-flex items-center justify-center"
-            >
-              Read Educational Guides
-              <BookOpen size={18} className="ml-2" aria-hidden="true" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Verified Location-Aware Emergency Section */}
-      <section className="py-12 bg-card border-b border-border">
+      {/* 7. Verified Location-Aware Crisis Resources Section */}
+      <section className="py-14 bg-secondary/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-start gap-3">
-              <AlertCircle size={26} className="text-destructive shrink-0 mt-1" aria-hidden="true" />
+              <AlertCircle size={24} className="text-destructive shrink-0 mt-1" aria-hidden="true" />
               <div>
-                <h2 className="text-xl font-bold text-foreground">
-                  If you are in immediate crisis or having thoughts of self-harm
+                <h2 className="text-lg md:text-xl font-bold text-foreground">
+                  Need Immediate Human Crisis Support?
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  Restless Mind cannot monitor emergencies. Connect immediately with verified human crisis counselors in your region:
+                <p className="text-xs md:text-sm text-muted-foreground">
+                  Restless Mind does not monitor emergencies. Connect with verified 24/7 crisis counselors in your region:
                 </p>
               </div>
             </div>
@@ -477,7 +488,7 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
                 id="home-crisis-region"
                 value={region}
                 onChange={(e) => onRegionChange(e.target.value as CrisisRegionCode)}
-                className="text-xs font-semibold px-3 py-2 rounded-lg border border-border bg-secondary text-foreground"
+                className="text-xs font-semibold px-3 py-2 rounded-xl border border-border bg-card text-foreground"
               >
                 <option value="IN">India (Tele-MANAS / iCall / NIMHANS)</option>
                 <option value="US">United States &amp; Canada (988)</option>
@@ -491,17 +502,18 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
             {crisisInfo.helplines.map((helpline) => (
               <div
                 key={helpline.name}
-                className="bg-secondary rounded-2xl p-5 border border-border flex flex-col justify-between"
+                className="bg-card rounded-2xl p-5 border border-border flex flex-col justify-between"
               >
                 <div>
-                  <p className="font-bold text-foreground mb-1">{helpline.name}</p>
-                  <p className="text-xs text-muted-foreground mb-3">{helpline.organization}</p>
-                  <p className="text-destructive font-mono tabular-nums font-bold text-lg mb-1 inline-flex items-center gap-1.5">
-                    <PhoneCall size={16} aria-hidden="true" />
+                  <p className="font-bold text-foreground text-sm mb-0.5">{helpline.name}</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {helpline.organization} · {helpline.hours}
+                  </p>
+                  <p className="text-destructive font-mono tabular-nums font-bold text-base mb-2 inline-flex items-center gap-1.5">
+                    <PhoneCall size={15} aria-hidden="true" />
                     {helpline.phone}
                   </p>
-                  <p className="text-xs text-muted-foreground mb-2">{helpline.hours}</p>
-                  <p className="text-xs text-foreground/80 leading-relaxed mb-3">
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                     {helpline.description}
                   </p>
                 </div>
@@ -509,9 +521,10 @@ export default function HomePage({ onNavigate, region, onRegionChange }: HomePag
                   href={helpline.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-semibold text-primary hover:underline"
+                  className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
                 >
-                  Official Helpline Portal →
+                  Official Helpline Portal
+                  <ExternalLink size={12} aria-hidden="true" />
                 </a>
               </div>
             ))}

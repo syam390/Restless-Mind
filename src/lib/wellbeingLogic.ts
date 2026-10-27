@@ -462,3 +462,200 @@ export function formatAppointmentSummaryText(params: {
   ].join('\n');
 }
 
+export interface ErpSimulationPoint {
+  minute: number;
+  distress: number; // 0 to 10 scale
+  svgX: number; // 40 to 560
+  svgY: number; // 25 to 195
+  annotation?: string;
+}
+
+export interface ErpSimulationResult {
+  mode: 'compulsion_loop' | 'erp_habituation';
+  sessionNumber: number;
+  peakDistress: number;
+  endingDistress: number;
+  minutesToSettle: number;
+  points: ErpSimulationPoint[];
+  svgPathD: string;
+  svgAreaD: string;
+  clinicalTakeaway: string;
+}
+
+/**
+ * Pure mathematical model of the OCD Compulsion Reassurance Loop vs.
+ * Exposure and Response Prevention (ERP) habituation & inhibitory learning across sessions 1-5.
+ */
+export function computeErpHabituationCurve(
+  exposureSession: number,
+  mode: 'compulsion_loop' | 'erp_habituation'
+): ErpSimulationResult {
+  const session = Math.min(5, Math.max(1, Math.round(exposureSession)));
+  const minutes = [0, 5, 10, 15, 20, 30, 45, 60];
+
+  const rawDistress: number[] =
+    mode === 'compulsion_loop'
+      ? // Compulsion loop: spike -> brief drop after ritual -> rebound spike -> ritual -> chronic baseline
+        [2.5, 8.8, 3.0, 8.5, 3.2, 8.9, 3.5, 8.4]
+      : // ERP Habituation: initial peak decreases and settles faster with each practice session (1..5)
+        (() => {
+          const peak = Number(Math.max(4.2, 9.2 - (session - 1) * 1.15).toFixed(1));
+          const mid15 = Number(Math.max(3.2, peak - (0.9 + session * 0.35)).toFixed(1));
+          const mid20 = Number(Math.max(2.6, mid15 - (0.8 + session * 0.25)).toFixed(1));
+          const mid30 = Number(Math.max(2.0, mid20 - 1.1).toFixed(1));
+          const mid45 = Number(Math.max(1.5, mid30 - 0.8).toFixed(1));
+          const end60 = Number(Math.max(1.2, mid45 - 0.4).toFixed(1));
+          return [2.2, peak * 0.88, peak, mid15, mid20, mid30, mid45, end60];
+        })();
+
+  const points: ErpSimulationPoint[] = minutes.map((min, idx) => {
+    const d = Number(rawDistress[idx].toFixed(1));
+    const svgX = Math.round(45 + (min / 60) * 510);
+    const svgY = Math.round(195 - (d / 10) * 165);
+    let annotation: string | undefined;
+    if (mode === 'compulsion_loop') {
+      if (idx === 1) annotation = 'Trigger spikes urge';
+      if (idx === 2) annotation = 'Brief ritual relief';
+      if (idx === 5) annotation = 'Doubt rebounds ("Did I check?")';
+    } else {
+      if (idx === 2) annotation = `Session ${session} peak (${d}/10) — pause ritual`;
+      if (idx === 5) annotation = 'Nervous system habituates naturally';
+    }
+    return { minute: min, distress: d, svgX, svgY, annotation };
+  });
+
+  const svgPathD = points
+    .map((pt, idx) => `${idx === 0 ? 'M' : 'L'} ${pt.svgX} ${pt.svgY}`)
+    .join(' ');
+  const svgAreaD = `${svgPathD} L ${points[points.length - 1].svgX} 195 L ${points[0].svgX} 195 Z`;
+
+  const peakDistress = Math.max(...points.map((p) => p.distress));
+  const endingDistress = points[points.length - 1].distress;
+  const minutesToSettle =
+    mode === 'compulsion_loop' ? 60 : Math.max(15, 50 - (session - 1) * 8);
+
+  const clinicalTakeaway =
+    mode === 'compulsion_loop'
+      ? 'Performing a compulsion or asking for reassurance drops anxiety for a few minutes, but teaches the brain that the intrusive thought was a real threat—causing the spike to return.'
+      : session === 1
+      ? 'In ERP Session 1, pausing the compulsion feels uncomfortable at first, but distress reaches a natural ceiling and begins to subside on its own without a ritual.'
+      : `By ERP Session ${session}, your brain begins inhibitory learning: the initial alarm peaks lower (${peakDistress}/10) and settles in ~${minutesToSettle} minutes without checking.`;
+
+  return {
+    mode,
+    sessionNumber: session,
+    peakDistress,
+    endingDistress,
+    minutesToSettle,
+    points,
+    svgPathD,
+    svgAreaD,
+    clinicalTakeaway,
+  };
+}
+
+export interface PersonalWellbeingInsights {
+  hasUserData: boolean;
+  totalCheckIns: number;
+  totalJournals: number;
+  periodLabel: string;
+  avgMood: number | null;
+  avgStress: number | null;
+  avgSleep: number | null;
+  avgJournalDistress: number | null;
+  latestJournalDistress: number | null;
+  observationSummary: string;
+}
+
+/**
+ * Computes genuine personal insights strictly from actual user-logged check-ins and journals.
+ * Never fabricates streaks, diagnostic scores, or synthetic statistics when arrays are empty.
+ */
+export function computePersonalWellbeingInsights(
+  checkIns: DailyCheckInRecord[],
+  journals: JournalEntryRecord[]
+): PersonalWellbeingInsights {
+  const totalCheckIns = checkIns.length;
+  const totalJournals = journals.length;
+  const hasUserData = totalCheckIns > 0 || totalJournals > 0;
+
+  if (!hasUserData) {
+    return {
+      hasUserData: false,
+      totalCheckIns: 0,
+      totalJournals: 0,
+      periodLabel: 'No entries logged',
+      avgMood: null,
+      avgStress: null,
+      avgSleep: null,
+      avgJournalDistress: null,
+      latestJournalDistress: null,
+      observationSummary:
+        'Log a daily check-in or thought reflection to view your private, on-device wellbeing patterns.',
+    };
+  }
+
+  const allTimestamps = [
+    ...checkIns.map((c) => new Date(c.createdAt).getTime()),
+    ...journals.map((j) => new Date(j.createdAt).getTime()),
+  ].filter((t) => !Number.isNaN(t));
+
+  let periodLabel = `Sample: n = ${totalCheckIns} check-in${totalCheckIns === 1 ? '' : 's'}, ${totalJournals} reflection${totalJournals === 1 ? '' : 's'}`;
+  if (allTimestamps.length > 0) {
+    const earliest = new Date(Math.min(...allTimestamps)).toISOString().slice(0, 10);
+    const latest = new Date(Math.max(...allTimestamps)).toISOString().slice(0, 10);
+    const rangeStr = earliest === latest ? earliest : `${earliest} to ${latest}`;
+    periodLabel = `Period: ${rangeStr} · Sample: n = ${totalCheckIns} check-in${totalCheckIns === 1 ? '' : 's'}, ${totalJournals} reflection${totalJournals === 1 ? '' : 's'}`;
+  }
+
+  const avgMood =
+    totalCheckIns > 0
+      ? Number((checkIns.reduce((s, c) => s + c.moodScore, 0) / totalCheckIns).toFixed(1))
+      : null;
+  const avgStress =
+    totalCheckIns > 0
+      ? Number((checkIns.reduce((s, c) => s + c.stressScore, 0) / totalCheckIns).toFixed(1))
+      : null;
+  const avgSleep =
+    totalCheckIns > 0
+      ? Number((checkIns.reduce((s, c) => s + c.sleepHours, 0) / totalCheckIns).toFixed(1))
+      : null;
+  const avgJournalDistress =
+    totalJournals > 0
+      ? Number((journals.reduce((s, j) => s + j.anxietyLevel, 0) / totalJournals).toFixed(1))
+      : null;
+  const latestJournalDistress = totalJournals > 0 ? journals[0].anxietyLevel : null;
+
+  const notes: string[] = [];
+  if (avgSleep !== null && avgStress !== null) {
+    if (avgSleep < 6.5 && avgStress >= 3.5) {
+      notes.push(
+        `Your recent self-reported logs (n = ${totalCheckIns}) show shorter average sleep (${avgSleep}h) alongside elevated stress (${avgStress}/5). Shorter rest can sometimes make intrusive doubts feel louder.`
+      );
+    } else {
+      notes.push(
+        `Across ${totalCheckIns} self-reported check-in${totalCheckIns === 1 ? '' : 's'}, your average sleep is ${avgSleep}h with an average mood of ${avgMood}/5.`
+      );
+    }
+  }
+  if (avgJournalDistress !== null) {
+    notes.push(
+      `You have recorded ${totalJournals} ERP reflection${totalJournals === 1 ? '' : 's'} with an average self-rated urge intensity of ${avgJournalDistress}/10 (non-diagnostic personal observation).`
+    );
+  }
+
+  return {
+    hasUserData: true,
+    totalCheckIns,
+    totalJournals,
+    periodLabel,
+    avgMood,
+    avgStress,
+    avgSleep,
+    avgJournalDistress,
+    latestJournalDistress,
+    observationSummary: notes.join(' '),
+  };
+}
+
+

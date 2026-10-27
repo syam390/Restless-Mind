@@ -278,22 +278,23 @@ function buildDeterministicEducationalResponse(task: AiGuideTask, userInput: str
     return [
       'Here are structured, non-diagnostic questions you can bring to a psychologist, psychiatrist, or general physician:',
       '1. "Here are the main patterns I have noticed over the past few weeks (thoughts, physical feelings, and sleep changes). What evidence-based options fit these experiences?"',
-      '2. "Could Exposure and Response Prevention (ERP) or Cognitive Behavioral Therapy (CBT) be appropriate for the repetitive doubts or checking behaviors I described?"',
-      '3. "How can we tell the difference between intrusive thoughts, general anxiety, burnout, or physical/hormonal contributors (such as thyroid or PCOS/PCOD)?"',
-      '4. "What small, practical steps can I safely practice between sessions without overwhelming myself?"',
+      '2. "Could OCD-specific Cognitive Behavioural Therapy (CBT) with Exposure and Response Prevention (ERP) be appropriate for the repetitive doubts or checking behaviors I described?"',
+      '3. "What are the expected benefits, limitations, and follow-up plans for any therapy or medication options we discuss?"',
+      '4. "What small, manageable steps can I safely practice between sessions without overwhelming myself?"',
       '',
-      'Note: Generated using Restless Mind’s reviewed educational templates (non-diagnostic; not medical advice).',
+      'Further reading: Visit the "Understanding Treatment" (/treatment) guide on Restless Mind to compare CBT, ERP, ACT, and medication classes before your visit.',
+      'Note: Prepared using evidence-informed educational templates (clinical review pending; non-diagnostic; not medical advice).',
     ].join('\n');
   }
 
   if (task === 'reflection_prompt') {
     return [
       'Gentle Non-Diagnostic Reflection Prompts (ERP & ACT Informed):',
-      '• Notice & Name: "Right now, I notice my mind is offering the thought that ____. Can I view this as a mental event rather than a fact?"',
-      '• Compulsion Pause: "What action or reassurance is anxiety urging me to do right now to feel 100% certain? What happens if I wait 3 minutes before deciding?"',
+      '• Notice & Name: "Right now, I notice my mind is offering the thought that ____. Can I view this as a passing mental event rather than a fact?"',
+      '• Compulsion Pause: "What action or reassurance is anxiety urging me to do right now to feel 100% certain? What happens if I pause and allow uncertainty for 2 minutes?"',
       '• Values Compass: "If this anxious wave were quieter, what small, meaningful activity would I want to give my attention to next?"',
       '',
-      'Note: Do not use reflection to argue with or analyze intrusive thoughts.',
+      'Note: Do not use reflection to argue with or analyze intrusive thoughts. Educational support only; not a substitute for clinical therapy.',
     ].join('\n');
   }
 
@@ -301,18 +302,19 @@ function buildDeterministicEducationalResponse(task: AiGuideTask, userInput: str
     return [
       'Suggested Next Steps Within Restless Mind:',
       '• If your body feels tense or racing right now: Visit Daily Tools → 4-7-8 Breathing or 5-4-3-2-1 Grounding.',
-      '• If you want to understand repetitive doubts vs. rituals: Explore Homepage → Understanding the OCD Cycle & Blog → Breaking the Cycle: How ERP Works.',
-      '• If you are ready to talk to a professional in India: Call Tele-MANAS (14416, 24/7 free) or iCall (+91 91529 87821), or review public institutes like NIMHANS on the Find Help page.',
+      '• If you want to learn about CBT, ERP, ACT, SSRIs, or specialist care: Visit Understanding Treatment (/treatment) for our interactive treatment explorer and reference library.',
+      '• If you are ready to talk to a professional in India: Call Tele-MANAS (14416, 24/7 free) or iCall (+91 91529 87821), or review public institutes like NIMHANS on the Find Help (/resources) page.',
     ].join('\n');
   }
 
   return [
     `Plain-Language Educational Summary (${cleanTopic.slice(0, 60) || 'Mental Wellbeing'}):`,
-    '• Thoughts are not actions: Having an unwanted or scary intrusive thought does not reflect your character or intentions.',
-    '• Why rituals backfire: Checking, washing, or asking for reassurance lowers anxiety for a few minutes, which tricks the brain into thinking the ritual kept you safe.',
-    '• How recovery works: Evidence-based approaches like ERP help you gradually face uncertainty while pausing rituals, allowing your nervous system to recalibrate naturally.',
+    '• Thoughts are not actions: Having an unwanted or distressing intrusive thought does not reflect your character or intentions.',
+    '• Why rituals backfire: Checking, washing, or asking for reassurance lowers anxiety briefly, which reinforces the alarm cycle.',
+    '• Evidence-based care: Psychological therapies such as CBT with Exposure and Response Prevention (ERP) and clinician-prescribed medicines (such as SSRIs when indicated) are established treatments for OCD.',
+    '• Explore in depth: Visit the Understanding Treatment (/treatment) page to review CBT, ERP, ACT, medication safety, and verified clinical references (NICE CG31, NHS, IOCDF).',
     '',
-    'Reminder: This explanation is for educational clarity only and does not diagnose any condition.',
+    'Reminder: This explanation is for general educational clarity only (clinical review pending) and does not diagnose any condition or recommend a specific medicine or dose.',
   ].join('\n');
 }
 
@@ -380,12 +382,14 @@ app.post('/api/ai/guide', async (req, res) => {
       config: {
         temperature: 0.3,
         systemInstruction: [
-          'You are the scoped Educational & Care-Navigation Assistant for Restless Mind, a compassionate mental-wellbeing platform.',
+          'You are the scoped Educational & Care-Navigation Assistant for Restless Mind, an evidence-informed mental-wellbeing education platform.',
           'STRICT CLINICAL & SAFETY BOUNDARIES:',
-          '1. NEVER diagnose any condition (OCD, anxiety, ADHD, autism, depression, PCOS/PCOD) or prescribe medication.',
-          '2. NEVER provide compulsive reassurance, certainty guarantees ("I promise nothing bad will happen"), or endless symptom analysis. If the user seeks reassurance for an intrusive thought, gently explain how reassurance reinforces the OCD cycle and suggest a brief grounding step.',
-          '3. Keep language warm, plain, non-stigmatizing, and concise (under 160 words, using clear bullet points).',
-          '4. Always end with a brief reminder that this is educational support, not medical advice.',
+          '1. NEVER diagnose any condition (OCD, anxiety disorders, ADHD, autism, depression, PCOS/PCOD) or act as a therapist or clinician.',
+          '2. NEVER select medications, recommend specific dosages or titrations, advise starting/stopping/combining medicines, or make personalized treatment recommendations.',
+          '3. NEVER provide compulsive reassurance, certainty guarantees ("I promise nothing bad will happen"), or endless symptom analysis. If the user seeks reassurance for an intrusive thought, gently explain how reassurance reinforces the OCD cycle and suggest a brief grounding step.',
+          '4. NEVER represent generated responses as doctor-reviewed or medically verified.',
+          '5. When users ask general questions about CBT, ERP, ACT, SSRIs, clomipramine, or specialist care, refer them to the Restless Mind "Understanding Treatment" (/treatment) page and encourage discussion with a qualified clinician.',
+          '6. Keep language warm, plain, non-stigmatizing, and concise (under 160 words, using clear bullet points). Always end with a brief reminder that this is educational support, not individual medical advice.',
         ].join('\n'),
       },
     });

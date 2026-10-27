@@ -13,7 +13,18 @@ import {
   sanitizeStoryText,
   maskEmailAddress,
   formatAppointmentSummaryText,
+  computeErpHabituationCurve,
+  computePersonalWellbeingInsights,
 } from './wellbeingLogic';
+import {
+  TREATMENT_SOURCES_REGISTRY,
+  TREATMENT_ENTRIES,
+  CBT_FIVE_PART_NODES,
+  ERP_LEARNING_STAGES,
+  TREATMENT_JOURNEY_STAGES,
+  APPOINTMENT_QUESTION_CHECKLIST,
+  validateTreatmentDataIntegrity,
+} from '../data/treatmentEducationData';
 
 test('4-7-8 breathing timer progresses accurately across 4s inhale, 7s hold, 8s exhale', () => {
   let state = getInitialBreathingState(2);
@@ -145,3 +156,90 @@ test('Appointment summary formatter aggregates check-ins and questions accuratel
   assert.ok(summary.includes('Average Sleep Duration: 7.0 hours/night'));
   assert.ok(summary.includes('Repetitive checking before leaving home.'));
 });
+
+test('ERP habituation simulator curve lowers peak distress and settling time across sessions 1 to 5', () => {
+  const compulsion = computeErpHabituationCurve(1, 'compulsion_loop');
+  const erpSession1 = computeErpHabituationCurve(1, 'erp_habituation');
+  const erpSession5 = computeErpHabituationCurve(5, 'erp_habituation');
+
+  assert.ok(compulsion.endingDistress > erpSession1.endingDistress);
+  assert.ok(erpSession5.peakDistress < erpSession1.peakDistress);
+  assert.ok(erpSession5.minutesToSettle < erpSession1.minutesToSettle);
+  assert.equal(erpSession5.points.length, 8);
+});
+
+test('Personal wellbeing insights returns empty state when no user data exists and real averages with period/sample metadata when logged', () => {
+  const empty = computePersonalWellbeingInsights([], []);
+  assert.equal(empty.hasUserData, false);
+  assert.equal(empty.avgMood, null);
+  assert.equal(empty.periodLabel, 'No entries logged');
+
+  const active = computePersonalWellbeingInsights(
+    [
+      { id: '1', createdAt: '2026-10-25T00:00:00Z', moodScore: 2, stressScore: 4, sleepHours: 5.5, notes: '' },
+      { id: '2', createdAt: '2026-10-26T00:00:00Z', moodScore: 4, stressScore: 4, sleepHours: 6.0, notes: '' },
+    ],
+    [
+      {
+        id: 'j1',
+        createdAt: '2026-10-26T00:00:00Z',
+        thought: 'Did I lock the balcony door?',
+        anxietyLevel: 7,
+        responseAction: 'Paused 5 mins',
+        nextStepPlan: 'Wait 10 mins',
+      },
+    ]
+  );
+  assert.equal(active.hasUserData, true);
+  assert.equal(active.avgMood, 3.0);
+  assert.equal(active.avgSleep, 5.8);
+  assert.equal(active.avgJournalDistress, 7.0);
+  assert.ok(active.periodLabel.includes('n = 2 check-ins, 1 reflection'));
+  assert.ok(active.observationSummary.includes('shorter average sleep'));
+});
+
+test('Treatment education data layer passes integrity checks, verifies all 8 categories, and links to valid source registry entries', () => {
+  const integrity = validateTreatmentDataIntegrity();
+  assert.equal(integrity.valid, true, `Integrity errors: ${integrity.errors.join('; ')}`);
+  assert.equal(TREATMENT_ENTRIES.length, 8);
+  assert.ok(TREATMENT_SOURCES_REGISTRY.length >= 9);
+
+  const requiredCategories = [
+    'cbt',
+    'erp',
+    'act',
+    'ssris',
+    'clomipramine',
+    'combined',
+    'supportive',
+    'specialist',
+  ];
+  for (const catId of requiredCategories) {
+    const found = TREATMENT_ENTRIES.find((e) => e.id === catId);
+    assert.ok(found, `Missing required treatment category: ${catId}`);
+    assert.equal(
+      found.clinical_review_status,
+      'Prepared using evidence sources; clinical review pending'
+    );
+  }
+});
+
+test('Treatment sources include NICE CG31, NHS OCD Treatment, IOCDF ERP, and 2025 PMC12900050 guideline with explicit check dates', () => {
+  const urls = TREATMENT_SOURCES_REGISTRY.map((s) => s.canonicalUrl);
+  assert.ok(urls.includes('https://www.nice.org.uk/guidance/cg31/chapter/Recommendations'));
+  assert.ok(urls.includes('https://www.nhs.uk/mental-health/conditions/obsessive-compulsive-disorder-ocd/treatment/'));
+  assert.ok(urls.includes('https://iocdf.org/about-ocd/ocd-treatment-guide/exposure-response-prevention/'));
+  assert.ok(urls.includes('https://www.nhs.uk/mental-health/conditions/obsessive-compulsive-disorder-ocd/overview/'));
+  assert.ok(urls.includes('https://pmc.ncbi.nlm.nih.gov/articles/PMC12900050/'));
+
+  for (const src of TREATMENT_SOURCES_REGISTRY) {
+    assert.equal(src.dateChecked, '2026-10-27');
+    assert.ok(src.claimsSupported.length > 0);
+  }
+
+  assert.equal(CBT_FIVE_PART_NODES.length, 5);
+  assert.equal(ERP_LEARNING_STAGES.length, 5);
+  assert.equal(TREATMENT_JOURNEY_STAGES.length, 6);
+  assert.ok(APPOINTMENT_QUESTION_CHECKLIST.length >= 7);
+});
+
